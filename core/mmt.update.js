@@ -11,6 +11,7 @@ mmt = (function(mmt) {
     $('.step').remove();  $('#steps br').remove()
    $('.cargo').remove();  $('#max-cargo br').remove(); $('#opt-cargo br').remove()
   $('.profit').remove();  $('#profit br').remove()
+  $('.possible-path').remove()
   var item      = 'gems'
   var cargosize = 150
   var packets   = 5
