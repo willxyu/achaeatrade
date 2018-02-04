@@ -1,0 +1,106 @@
+a:link    {color:inherit; background-color:transparent; text-decoration:underline}
+a:visited {color:inherit; background-color:transparent; text-decoration:underline}
+a:hover   {color:inherit; background-color:transparent; text-decoration:underline} 
+a:active  {color:inherit; background-color:transparent; text-decoration:underline}
+
+@font-face {
+  font-family: goudry;
+  src: url('./resources/goudy.ttf'); }
+@font-face {
+  font-family: camingo;
+  src: url('./resources/camingo.ttf'); }
+@font-face {
+  font-family: camingoBold;
+  src: url('./resources/camingo-b.ttf'); }
+
+input:focus {
+  outline: none; }
+.nolink {
+  text-decoration: none; }
+::selection {
+  background: rgba(95,95,95,0.36); /* WebKit/Blink Browsers */ }
+  
+body {
+  color: rgba( 1, 1, 23, 1);
+  position: fixed;
+  /* overflow: hidden; */
+  height: 100%;
+  width: 100%;
+  margin: 0px;
+  padding: 0px;
+  background-color: rgba(85,95,115,1); }
+
+.line {
+  line-height: 30px;
+  height : 30px;
+  padding: 0.4em;
+  padding-left: 24px;
+  padding-top: 1.8em;
+  white-space: pre-wrap; }
+
+.query {
+  font-family: 'goudy';
+  font-size: 22pt;
+  display: inline-block; }
+
+.ui-spinner {
+  background: rgba( 1, 1, 1, 0);
+  border: none !important;
+  height: 30px;
+  max-width: 140px; }
+.ui-spinner input {
+  color: rgba(225,225,225,0.55);
+  font-family: 'goudy';
+  font-size: 22pt;
+  padding: 0em;
+  padding-left: 0.3em;
+  margin: 0em; }
+
+select {
+  background: rgba( 1, 1, 1, 0);
+  color: rgba(225,225,225,0.55);
+  border: none !important;
+  font-family: 'goudy';
+  font-size: 22pt; }
+
+#steps, #profit {
+  position: absolute;
+  left: 24px; }
+
+#steps, #max-cargo, #opt-cargo, #profit {
+  font-family: 'camingoBold';
+  font-size: 11pt; }
+
+.steps-query {
+  cursor: pointer; }
+ .steps-query:hover {
+   color: rgba( 255, 255, 255, 0.45); }
+
+.step, .cargo, .profit {
+  font-family: 'camingo';
+  white-space: pre-wrap; }
+
+.possible-path {
+  padding: 0em;
+  padding-left: 1em; }
+  .possible-path:hover {
+  cursor: pointer;
+  background-color: rgba( 45, 45, 45, 0.4 ); }
+
+#footer {
+  position: absolute;
+  bottom: 8px;
+  left: 0px;
+  height: 25px;
+  width: 100%;
+  font-size: 8pt; }
+#author {
+  text-align: right;
+  position: absolute;
+  bottom: 0px;
+  right: 8px; }
+
+.hidden {
+  display: none; }
+.dev {
+  border: 1px solid rgba(1,1,255,1); }
