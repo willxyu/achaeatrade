@@ -1,275 +1,36 @@
 <!doctype html>
 <html>
- <head><title>Achaea Trades</title>
+ <head><title>Achaea Trade Calculator</title>
   <link rel='icon' type='image/png' href='./core/resources/icon.png' />
-  <script src='./core/extlib/jquery-3.1.1.js'></script>
-  <script src='./core/jsJS.js'></script>
+  <script src='./extlib/jquery-3.1.1.js'></script>
+  <script src='./extlib/jquery-ui.min.js'></script>
+  <link  href='./extlib/jquery-ui.min.css' rel='stylesheet'>
+  <link  href='./core/mmt.css' rel='stylesheet'>
+  <script src='./core/util.js'></script>
+  <script src='./core/mmt.render.js'></script>
+  <script src='./core/mmt.data.js'></script>
+  <script src='./core/mmt.calculate.js'></script>
+  <script src='./core/mmt.percolate.js'></script>
+  <script src='./core/mmt.update.js'></script>
  </head>
  <body>
   <div id="footer" class="">
-   <div id="sub">Calculator for Ship Trading for <a href="https://achaea.com" target="_blank">Achaea</a></div>
-   <div id="author">© William Yu 2017</div>
+   <div id="author">Ship Trading Calculator for <a href="https://achaea.com" target="_blank">Achaea</a> | © William Yu 2017</div>
   </div>
-  <div id="ledger">
-   <div id="lgr-1" class="ledger">Expected Profit: </div>
-   <div id="lgr-2" class="ledger lgr-values"></div>
-  </div>
-  <div id="outputfull">
-   <div id="opf-1" class="output">Steps:</div>
-   <div id="opf-2" class="output opf-path "></div>
-   <div id="opf-3" class="output">Final Cargo:</div>
-   <div id="opf-4" class="output opf-cargo "></div>
-   <div id="opf-5" class="output">Optimal Cargo:</div>
-   <div id="opf-6" class="output opf-maxm "></div>
-  </div>
-  <div id="options">
-   <div id="opt-1" class="option">Cargo Size: </div>
-   <div id="opt-2" class="option opt-cargo dropper"></div>
-   <div id="opt-3" class="option">Per Employee Fee: </div>
-   <div id="opt-4" class="option opt-employee spinner"></div>
-  </div>
-  <div id="request">
-   <div id="req-1" class="request">Deliver</div>
-   <div id="req-2" class="request req-quant spinner"></div>
-   <div id="req-3" class="request req-type  dropper"></div>
-   <div id="req-4" class="request">to</div>
-   <div id="req-5" class="request req-final dropper"></div>
-   <div id="req-6" class="request">for</div>
-   <div id="req-7" class="request rwd-quant spinner"></div>
-   <div id="req-8" class="request rwd-type  dropper"></div>
-   <div id="req-9" class="request">.</div>
-  </div>
-  
+
  
  </body>
  <script>
   var log = console.log // Laziness
 
   $(window).on('load', function() {
-   var goodsList = trade.generateGoods({ignoreSovereigns: true}).sort()
-   var portsList = trade.generatePorts({destinationPorts: true}).sort()
-   var rewardList = ['credits','sovereigns']
-   var cargoSizes = [50,100,150]
-   var gperItem = 1000
-   // mpt.calculate({trades: mpt.preformedpath('incense'), cargosize : 150, packetSize : 15})
-   // log(mpt.locatePort({forwardport: "Umbrin", item: 'ceramics'}))
+   mmt.render()
+   mmt.construct()
+   mmt.calculatePaths()
+   log(mmt)
+   // log(mmt.percolate(mmt.calculatePath('incense'),150,5))
+   mmt.update()
 
-   decrement = function(target) {
-    var e = $('#'+target)
-    var val = parseInt(e.text().replace(',',''))
-    var incremental = 1
-    if (target == 'rwd-quant') {
-      var rwdtype = $('#rwd-type').text()
-      if (rwdtype == 'sovereigns') { incremental = 5000 }
-    }
-    if (target == 'opt-employee') { incremental = 500 }
-    val -= incremental
-    if (val < 0) { val = 0 }
-    e.text(commaThis(val))
-     redraw()
-   }
-
-   increment = function(target) {
-    var e = $('#'+target)
-    var val = parseInt(e.text().replace(',',''))
-    var incremental = 1
-    if (target == 'rwd-quant') {
-      var rwdtype = $('#rwd-type').text()
-      if (rwdtype == 'sovereigns') { incremental = 5000 }
-    }
-    if (target == 'opt-employee') { incremental = 500 }
-    val += incremental
-    e.text(commaThis(val))
-     redraw()
-   }
-
-   update = function(target,item) {
-     if (item == 'Tasurke') { item = "Tasur'ke" }
-     $(target).text(item)
-     $(target+'-list').css('display','none')
-     redraw()
-   }
-
-   redraw = function() {
-     var cargosize = parseInt($('#opt-cargo').text())
-     var goodtype = $('#req-type').text()
-     var packetSize = false
-     if ($('#req-quant').length) { packetSize = parseInt($('#req-quant').text()) }
-
-     var query        = {}
-     query.trades     = mpt.preformedpath(goodtype)
-     query.packetSize = packetSize
-     query.cargosize  = cargosize
-     query            = mpt.calculate(query)
-
-     $('#opf-path').remove()
-     var d = ''
-     for (var i=0;i<query.trades.length;i++) {
-      var t = query.trades[i]
-      if (i != 0) { d = d.replace('PREVPORT',t.port) }
-      var _from = 'PREVPORT' + ' ' + t.cost 
-      var _to   = t.port + ' ' + t.goods
-      var s     = _from + ' >> ' + _to
-      s = '<div id="opf-path-'+t.port+'_'+t.cost+'" class="opf-elem" >'+s+'</div>'
-      d = s + d
-      if (i == (query.trades.length-1)) { 
-        var firstport = mpt.locatePort({forwardport: t.port, item: t.cost}) 
-        if (firstport.length > 0) {
-         d = d.replace('PREVPORT',firstport[0])
-        }
-      }
-     }
-     // d = '<div id="opf-path" class="output"><div id="opf-path-list" class="">'+d+'</div></div>'
-     // d = '<div id="opf-path-list" class="">'+d+'</div>'
-     d = '<div id="opf-path" class="output">'+d+'</div>'
-
-     $('.opf-path').append(d)
-     $('.opf-path').css('verticalAlign','top')
-
-     $('#opf-cargo').remove()
-     // Room to sort this
-     d = ''
-     d += '<div id="opf-cargo">'
-     for (var key in query.cargo) {
-      d += '<div id="opf-cargo-key"  class="opf-elem">'
-      d += query.cargo[key] + ' ' + key
-      d += '</div>'
-     }
-     d += '</div>'
-
-     $('.opf-cargo').append(d)
-     $('.opf-cargo').css('verticalAlign','top')
-
-     $('#opf-maxm').remove()
-     // Room to sort this
-     d = ''
-     d += '<div id="opf-maxm">'
-     for (var key in query.shadowcargo) {
-      d += '<div id="opf-maxm-'+key+'"  class="opf-elem">'
-      d += query.shadowcargo[key] + ' ' + key
-      d += '</div>'
-     }
-     // Initial Purchase:
-     var firstTrade = query.trades[query.trades.length - 1]
-     d += '<div id="opf-init">Start with <span style="color: rgba(230,230,230,1);">'+query.parcel+'</span> '+firstTrade.cost+'</div>'
-     d += '</div>'
-
-     $('.opf-maxm').append(d)
-     $('.opf-maxm').css('verticalAlign','top')
-
-     var topOffset = clean($('#outputfull').css('top'))
-     var height    = clean($('#outputfull').css('height'))
-     $('#ledger').css('top',topOffset+height+8)
-
-     // Calculate profit
-     var initialCost = query.parcel * gperItem
-     var multiples   = mpt.quantifyCargo(query.shadowcargo, goodtype) / packetSize
-     var rwdQuant = parseInt($('#rwd-quant').text().replace(',',''))
-     var payout = multiples * rwdQuant
-
-     var dockingfees = 0
-     var employeeCount = multiples - 1
-     var perEmployee = 0
-     var employeeFees = 0
-
-     if ($('#opt-employee').length) { perEmployee = parseInt($('#opt-employee').text().replace(',','')) }
-     if (employeeCount < 0) { employeeCount = 0 }
-     employeeFees = employeeCount * perEmployee
-
-     var finalPay = payout - initialCost - dockingfees - employeeFees
-
-     $('#lgr-values').remove()
-     var style = 'style="text-align: right; position: absolute; right: 0px;"'
-     d = ''
-     d += '<div id="lgr-values">'
-     d += '<div id="lgr-payout"   class="lgr-elem"><span style="white-space:pre-wrap;">   </span>Expected Payout: '
-     d += '<span '+style+'>'+commaThis(payout)+'</span></div>'
-     d += '<div id="lgr-initcost" class="lgr-elem"><span style="white-space:pre-wrap;">   </span>Initial Cost: '
-     d += '<span '+style+'>'+commaThis(initialCost)+'</span></div>'
-     d += '<div id="lgr-docking"  class="lgr-elem"><span style="white-space:pre-wrap;">   </span>Docking Fees: '
-     d += '<span '+style+'>'+commaThis(dockingfees)+'</span></div>'
-     d += '<div id="lgr-employs" class="lgr-elem"><span style="white-space:pre-wrap;">   </span>Employee Fees: '
-     d += '<span '+style+'>'+commaThis(employeeFees)+'</span></div>'
-     d += '<div id="" class="lgr-elem"><span style="white-space:pre-wrap;">   </span></div>'
-     d += '<div id="lgr-final"    class="lgr-elem"><span style="white-space:pre-wrap;">   </span>Final Payout: '
-     d += '<span '+style+'>'+commaThis(finalPay)+'</span></div>'
-     d += '</div>'
-     $('#ledger').append(d)
-   }
-   /* END redraw */
-
-   var d = ''
-   var goodtype = 'good-type'
-       goodtype = '<span style="color: rgba(167,123,123,1);">'+goodtype+'</span>'
-   d += '<div id="req-type" class="request">'+goodtype+'</div>'
-   d += '<div id="req-type-list" class="hidden">'
-   for (var k in goodsList) {
-     var item = goodsList[k]
-     d += '<div id="req-type-'+item+'" class="req-elem" '
-     d += 'onclick="update(\''+'#req-type'+'\',\''+item+'\')">'+item+'</div>'
-   }
-   $('.req-type.dropper').append(d) 
-   $('.req-type.dropper').css('verticalAlign','top')
-   $('.req-type.dropper').on( 'mouseover',  function(e, ui) { $('#req-type-list').css('display','inline') })
-   $('.req-type.dropper').on( 'mouseleave', function(e, ui) { $('#req-type-list').css('display','none')   })
-   
-   d = ''
-   d += '<div id="req-final" class="request">'+portsList[0]+'</div>'
-   d += '<div id="req-final-list" class="hidden">'
-   for (var k in portsList) {
-     var port = portsList[k]
-     d += '<div id="req-final-'+port+'" class="req-elem" '
-     var gditasurke = port
-     gditasurke = gditasurke.replace("'","\\'")
-     d += 'onclick="update(\''+'#req-final'+'\',\''+gditasurke+'\')">'+port+'</div>'
-   }
-   $('.req-final.dropper').append(d)
-   $('.req-final.dropper').css('verticalAlign','top')
-   $('.req-final.dropper').on( 'mouseover',  function(e, ui) { $('#req-final-list').css('display','inline') })
-   $('.req-final.dropper').on( 'mouseleave', function(e, ui) { $('#req-final-list').css('display','none')   })
-   
-   d = ''
-   d += '<div id="rwd-type" class="request">'+rewardList[1]+'</div>'
-   d += '<div id="rwd-type-list" class="hidden">'
-   for (var k in rewardList) {
-    var reward = rewardList[k]
-    d += '<div id="rwd-type-'+reward+'" class="req-elem" '
-    d += 'onclick="update(\''+'#rwd-type'+'\',\''+reward+'\')">'+reward+'</div>'
-   }
-   $('.rwd-type.dropper').append(d)
-   $('.rwd-type.dropper').css('verticalAlign','top')
-   $('.rwd-type.dropper').on( 'mouseover',  function(e, ui) { $('#rwd-type-list').css('display','inline') })
-   $('.rwd-type.dropper').on( 'mouseleave', function(e, ui) { $('#rwd-type-list').css('display','none')   })
-  
-   d = ''
-   d += '<div id="opt-cargo" class="option">'+100+'</div>'
-   d += '<div id="opt-cargo-list" class="hidden">'
-   for (var k in cargoSizes) {
-    var cargoSize = cargoSizes[k]
-    d += '<div id="opt-cargo-'+cargoSize+'" class="opt-elem" '
-    d += 'onclick="update(\''+'#opt-cargo'+'\',\''+cargoSize+'\')">'+cargoSize+'</div>'
-   }
-   $('.opt-cargo.dropper').append(d)
-   $('.opt-cargo.dropper').css('verticalAlign','top')
-   $('.opt-cargo.dropper').on( 'mouseover',  function(e, ui) { $('#opt-cargo-list').css('display','inline') })
-   $('.opt-cargo.dropper').on( 'mouseleave', function(e, ui) { $('#opt-cargo-list').css('display','none')   })
-
-   // Spinners
-   d = ''
-   d += '<div id="req-quant-minus" class="req-spinner request" onclick="decrement(\'req-quant\')">-</div>'
-   d += '<div id="req-quant" class="request">4</div>'
-   d += '<div id="req-quant-plus"  class="req-spinner request" onclick="increment(\'req-quant\')">+</div>'
-   $('.req-quant.spinner').append(d)
-   d = ''
-   d += '<div id="rwd-quant-minus" class="req-spinner request" onclick="decrement(\'rwd-quant\')">-</div>'
-   d += '<div id="rwd-quant" class="request">'+commaThis(50000)+'</div>'
-   d += '<div id="rwd-quant-plus"  class="req-spinner request" onclick="increment(\'rwd-quant\')">+</div>'
-   $('.rwd-quant.spinner').append(d)
-   d = ''
-   d += '<div id="opt-employee-minus" class="opt-spinner option" onclick="decrement(\'opt-employee\')">-</div>'
-   d += '<div id="opt-employee" class="request">'+commaThis(5000)+'</div>'
-   d += '<div id="opt-employee-plus"  class="opt-spinner option" onclick="increment(\'opt-employee\')">+</div>'
-   $('.opt-employee.spinner').append(d)
   })
  </script>
 </html>
