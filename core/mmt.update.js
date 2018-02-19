@@ -110,7 +110,7 @@ mmt = (function(mmt) {
   var u = x[item]
   var i = y.optinit * 1000
   var p = u / packets * payout
-  var q = (packets - 1) * employ
+  var q = Math.max(0, Math.floor(u / packets) - 1) * employ
   var n = p - q
   
   if (q < 0) { q = 0 }
